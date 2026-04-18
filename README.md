@@ -23,8 +23,8 @@ Moore CM, McManus SA, Wynn EA, McClendon JD, Janssen WJ* and Mould KJ*. Human ai
 
 ## Data availability
 Raw and processed data are available on GEO:
-- Baseline samples: [GEO accession TBD]
-- Post-LPS samples: [GEO accession TBD]
+- Baseline samples: GSE151928
+- Post-LPS samples: GSE300946
 
 Processed Seurat objects (v5) are provided directly on GEO:
 - `integrated_all_samples_v5.RDS` — all cell types, 15 subjects x 2 timepoints
