@@ -1,0 +1,95 @@
+---
+title: " Pre-Post LPS scRNAseq Trajectory Analysis"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Load R libraries
+```{r}
+## Load packages
+library(reticulate)
+library(Seurat)
+library(monocle3)
+library(SeuratWrappers)
+library(scCustomize)
+
+```
+
+# Step 1: Run Monocle in R
+```{r}
+
+## Read in data
+seu_mac <- readRDS("macrophage_recluster_v5.RDS")
+
+## Convert to cell data set
+cds <- as.cell_data_set(seu_mac)
+
+## Transfer UMAP/cluster info ect. to cell data set
+list_cluster <- seu_mac@meta.data[["seurat_clusters"]]
+names(list_cluster) <- seu_mac@assays[["RNA"]]$data@Dimnames[[2]]
+cds@clusters@listData[["UMAP"]][["clusters"]] <- list_cluster
+recreate.partition <- c(rep(1, length(cds@colData@rownames)))
+names(recreate.partition) <- cds@colData@rownames
+recreate.partition <- as.factor(recreate.partition)
+cds@clusters@listData[["UMAP"]][["partitions"]] <- recreate.partition
+
+## Run monocle
+cds <- learn_graph(cds)
+
+## Plot to find correct root node
+plot_cells(cds, label_groups_by_cluster = FALSE, label_leaves = FALSE, label_branch_points = FALSE, label_principal_points = T)
+
+## Order cells after specifying starting node
+cds<-order_cells(cds,root_pr_nodes="Y_213")
+
+## Plot pseudotime
+plot_cells(cds, color_cells_by = "pseudotime", label_cell_groups = FALSE, label_leaves = FALSE, 
+           label_branch_points = FALSE)
+
+## Save pseudotime to seurat object
+seu_mac$monocle_pseudotime<-pseudotime(cds)
+
+```
+
+# Step 2: Save seurat object as anndata object for python
+
+```{r}
+## Save as h5ad anndata
+as.anndata(x = seu_mac, file_path = ".",  file_name = "macrophage_recluster.h5ad")
+
+```
+
+# Step 3: Run cellrank2 in python
+
+```{python}
+
+## Import packages
+import cellrank as cr
+import numpy as np
+import scanpy as sc
+import anndata as ad
+import scvelo as scv
+
+## Read in/format data anndata object
+adata = ad.read_h5ad("macrophage_recluster.h5ad")
+adata.obs["seurat_clusters"]=adata.obs["seurat_clusters"].astype("category")
+
+## Compute transition matrix using pseudotime
+sc.pp.neighbors(adata, n_pcs=30, n_neighbors=30, random_state=0)
+pk = cr.kernels.PseudotimeKernel(adata, time_key="monocle_pseudotime")
+pk.compute_transition_matrix()
+
+## Plot projection
+pk.plot_projection(
+    basis="umap",
+    recompute=False,
+    color="seurat_clusters"
+)
+```
+
+
+
+
