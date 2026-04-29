@@ -37,6 +37,8 @@ Processed Seurat objects (v5) are provided directly on GEO:
     │   ├── 02_marker_finding.R               # Marker gene identification
     │   ├── 03_analysis_and_figures.R         # Cell type annotation, compositional analysis, figures
     │   ├── 04_qc_plots.R                     # QC violin plots
+    │   ├── 05_differential_expression.R      # Differential expression testing
+    │   ├── 06_trajectory_analysis.RMD        # Pseudo-time Cell Rank analysis
     │   └── convert_seurat_v4_to_v5.R         # Object conversion and metadata cleaning
     ├── data/
     │   └── joint_subjectID_key.xlsx          # Sample metadata key
@@ -76,14 +78,16 @@ Scripts should be run in order:
    SCTransform normalization, RPCA integration, and clustering. 
    **Note:** This analysis was originally performed in Seurat v4.
 2. `convert_seurat_v4_to_v5.R` — converts objects to Seurat v5 format and 
-   cleans metadata. Run this before scripts 02-04.
+   cleans metadata. Run this before scripts 02-06.
 3. `02_marker_finding.R` — identifies cluster marker genes.
 4. `03_analysis_and_figures.R` — cell type annotation, compositional analysis, 
    and figure generation.
 5. `04_qc_plots.R` — QC violin plots.
+6. `05_differential_expression.R` — DEG testing between macrophage subtypes and timepoints.
+7. `06_trajectory_analysis.RMD` - trajectory analysis in macrophages. 
 
 ### Starting from processed objects
-Download the v5 Seurat objects from GEO and run scripts 03 and 04 directly.
+Download the v5 Seurat objects from GEO and run scripts 03 to 06 directly.
 Update file paths in scripts to reflect your local directory.
 
 ## Notes on data processing
